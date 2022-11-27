@@ -1,0 +1,63 @@
+version: '3.9'
+services:
+  nginx_tst:
+    build: ./nginx
+    ports:
+        -  8001:8001
+#        - 8001:8001
+#        - 6001:6001
+    depends_on:
+        - fpm_tst
+    volumes:
+        - ${APP_PATH_LOCAL}:${APP_PATH_CONTAINER}
+    networks:
+     - internal_tst
+  fpm_tst:
+    build: ./fpm
+    volumes:
+        - ${APP_PATH_LOCAL}:${APP_PATH_CONTAINER}
+    extra_hosts:
+        - "host.docker.internal:host-gateway"
+    networks:
+     - internal_tst
+#  mongo:
+#    image: mongo:4
+#    #restart: always
+#    environment:
+#      MONGO_INITDB_ROOT_USERNAME: root
+#      MONGO_INITDB_ROOT_PASSWORD: 123456
+#    ports:
+#      - 27017:27017
+#      - 27018:27018
+#      - 27019:27019
+  db_tst:
+    image: postgres
+    build: ./db
+#    restart: always
+    environment:
+       POSTGRES_PASSWORD: 123456
+       PGDATA: /var/lib/postgresql/data/pgdata
+
+    command: ["postgres", "-c", "log_statement=all"]
+#    volumes:
+#      - type: bind
+#        source: ${DB_PATH_LOCAL}
+#        target: /var/lib/postgresql/data/mnt
+#        mode: 0777
+#      - ${DB_PATH_LOCAL}:/var/lib/postgresql/data/pgdata
+    ports:
+      - 5443:5432
+    networks:
+     - internal_tst
+#  redis_tst:
+#    image: "redis"
+#    ports:
+#      - 6579:6379
+#    networks:
+#     - internal_tst
+
+networks:
+  internal_tst:
+    driver: bridge
+    ipam:
+      driver: default
